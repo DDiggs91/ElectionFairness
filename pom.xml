@@ -40,20 +40,15 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
-        <!-- Compile-time only: the annotations must be importable, but Lombok
-             erases itself and is not needed at runtime. -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
-
     </dependencies>
     <build>
         <pluginManagement>
             <plugins>
-                <!-- Importing spring-boot-dependencies brings dependencyManagement
-                     only, so surefire would otherwise fall back to Maven's default. -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
