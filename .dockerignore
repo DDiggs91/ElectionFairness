@@ -1,0 +1,9 @@
+# Keeps the devcontainer build context small — it only needs pom.xml files
+# (see .devcontainer/Dockerfile's frontend Node pre-warm step), not build
+# output, VCS history, or installed dependencies.
+.git
+**/target
+**/node_modules
+**/dist
+puerto-rico-frontend/playwright-report
+puerto-rico-frontend/test-results

@@ -1,0 +1,71 @@
+{
+    "name": "Java 25 Development",
+    "build": {
+        "dockerfile": "Dockerfile",
+        // Widens the build context from the default (.devcontainer/) to the repo root, so the
+        // Dockerfile can COPY the two pom.xml files it needs to pre-warm frontend-maven-plugin's
+        // Node install. See ../.dockerignore for what's excluded to keep this context small.
+        "context": ".."
+    },
+    // The eclipse-temurin noble base image already ships an "ubuntu" user
+    // with UID/GID 1000, so we reuse it instead of creating a new one.
+    // common-utils detects the existing user and grants it passwordless sudo.
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "username": "ubuntu",
+            "userUid": "automatic",
+            "userGid": "automatic",
+            "upgradePackages": false
+        }
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "java.configuration.runtime": [
+                    {
+                        "name": "JavaSE-25",
+                        "path": "/opt/java/openjdk",
+                        "default": true
+                    }
+                ]
+            },
+            "extensions": [
+                "anthropic.claude-code",
+                "bierner.markdown-mermaid",
+                "cucumberopen.cucumber-official",
+                "dbaeumer.vscode-eslint",
+                "josevseb.google-java-format-for-vs-code",
+                "ms-playwright.playwright",
+                "ms-vscode.live-server",
+                "redhat.java",
+                "redhat.vscode-xml",
+                "redhat.vscode-yaml",
+                "vmware.vscode-boot-dev-pack",
+                "vmware.vscode-spring-boot",
+                "vscjava.vscode-java-debug",
+                "vscjava.vscode-java-dependency",
+                "vscjava.vscode-java-pack", // Extension pack for Java (Debugger, Maven/Gradle support, Language Support)
+                "vscjava.vscode-java-test",
+                "vscjava.vscode-lombok",
+                "vscjava.vscode-maven",
+                "vscjava.vscode-spring-boot-dashboard",
+                "vscjava.vscode-spring-initializr"
+            ]
+        }
+    },
+    // Persist Claude Code auth/config, and the GitHub SSH key, across container rebuilds
+    "mounts": [
+        "source=claude-code-config-${devcontainerId},target=/home/ubuntu/.claude,type=volume",
+        "source=ssh-key-${devcontainerId},target=/home/ubuntu/.ssh,type=volume"
+    ],
+    "containerEnv": {
+        "CLAUDE_CONFIG_DIR": "/home/ubuntu/.claude"
+    },
+    "postCreateCommand": "bash .devcontainer/post-create.sh",
+    // Keeps the container running in the background
+    "shutdownAction": "stopContainer",
+    // Run as non-root so `claude --dangerously-skip-permissions` works.
+    // Use sudo inside the container for package management when needed.
+    "remoteUser": "ubuntu",
+    "containerUser": "ubuntu"
+}
