@@ -25,36 +25,5 @@ RUN curl -fsSL -o /tmp/maven.tar.gz \
 ENV MAVEN_HOME=/opt/maven
 ENV PATH="${MAVEN_HOME}/bin:${PATH}"
 
-# Node for puerto-rico-frontend's local dev loop (npm run dev/test:unit) and Playwright.
-# ./mvnw verify itself doesn't need this — frontend-maven-plugin installs its own isolated
-# Node (pre-warmed below) — but a system install makes the day-to-day npm workflow usable
-# directly.
-ARG NODE_VERSION=22.22.0
-RUN cd /tmp \
-    && curl -fsSL -O "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
-    && curl -fsSL -O "https://nodejs.org/dist/v${NODE_VERSION}/SHASUMS256.txt" \
-    && grep " node-v${NODE_VERSION}-linux-x64.tar.xz\$" SHASUMS256.txt | sha256sum -c - \
-    && tar -xJf "node-v${NODE_VERSION}-linux-x64.tar.xz" -C /opt \
-    && ln -s "/opt/node-v${NODE_VERSION}-linux-x64" /opt/node \
-    && rm "node-v${NODE_VERSION}-linux-x64.tar.xz" SHASUMS256.txt
-
-ENV PATH="/opt/node/bin:${PATH}"
-
-# Pre-warm frontend-maven-plugin's own isolated Node/npm install (see
-# puerto-rico-frontend/pom.xml) so a fresh container doesn't pay for the
-# download+extract interactively on the first `./mvnw verify`. Only the two
-# pom.xml files needed to resolve the frontend module's parent are copied in
-# here — the rest of the source is bind-mounted at runtime, not baked into
-# the image. Runs as ubuntu so ${user.home} matches what the real build
-# resolves at container run time.
-USER ubuntu
-WORKDIR /home/ubuntu/frontend-node-prewarm
-COPY --chown=ubuntu:ubuntu pom.xml pom.xml
-COPY --chown=ubuntu:ubuntu puerto-rico-frontend/pom.xml puerto-rico-frontend/pom.xml
-RUN mvn -f puerto-rico-frontend/pom.xml com.github.eirslett:frontend-maven-plugin:install-node-and-npm
-WORKDIR /home/ubuntu
-RUN rm -rf /home/ubuntu/frontend-node-prewarm
-USER root
-
 # Set the default shell to bash
 ENV SHELL=/bin/bash
